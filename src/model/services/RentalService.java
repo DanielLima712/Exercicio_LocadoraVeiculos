@@ -7,56 +7,32 @@ import model.entities.Invoice;
 
 public class RentalService {
 
-	private Double pricePerHour;
 	private Double pricePerDay;
+	private Double pricePerHour;
 	
-	private BrazilTaxService brasilTaxService;
+	private TaxService taxService;
 
-	public RentalService(Double pricePerHour, Double pricePerDay, BrazilTaxService brasilTaxService) {
-		this.pricePerHour = pricePerHour;
+	public RentalService(Double pricePerDay, Double pricePerHour, TaxService taxService) {
 		this.pricePerDay = pricePerDay;
-		this.brasilTaxService = brasilTaxService;
-	}
-
-	public Double getPricePerHour() {
-		return pricePerHour;
-	}
-
-	public void setPricePerHour(Double pricePerHour) {
 		this.pricePerHour = pricePerHour;
-	}
-
-	public Double getPricePerDay() {
-		return pricePerDay;
-	}
-
-	public void setPricePerDay(Double pricePerDay) {
-		this.pricePerDay = pricePerDay;
-	}
-
-	public BrazilTaxService getBrasilTaxService() {
-		return brasilTaxService;
-	}
-
-	public void setBrasilTaxService(BrazilTaxService brasilTaxService) {
-		this.brasilTaxService = brasilTaxService;
+		this.taxService = taxService;
 	}
 	
 	public void processInvoice(CarRental carRental) {
-		double minutes = Duration.between(carRental.getStart(), carRental.getFinish()).toMinutes();
-		double horas = minutes / 60;
 		
-		double pagamentoBasico;
-		if(horas <= 12.0) {
-			pagamentoBasico = pricePerHour * Math.ceil(horas); 
-		} else {
-			pagamentoBasico = pricePerDay * Math.ceil(horas / 24); 
+		double minutos = Duration.between(carRental.getStart(), carRental.getFinish()).toMinutes();		
+		double horas = minutos / 60.0;
+		
+		double basicPayment;
+		if (horas <= 12.0) {
+			basicPayment = pricePerHour * Math.ceil(horas);
 		}
-		
-		double tax = brasilTaxService.tax(pagamentoBasico);
-		
-		carRental.setInvoice(new Invoice(pagamentoBasico, tax));
-		
+		else {
+			basicPayment = pricePerDay * Math.ceil(horas / 24);
+		}
+
+		double tax = taxService.tax(basicPayment);
+
+		carRental.setInvoice(new Invoice(basicPayment, tax));
 	}
-	
 }
